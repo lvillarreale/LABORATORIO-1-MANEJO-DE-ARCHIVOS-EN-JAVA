@@ -2,22 +2,106 @@ import java.util.*;
 import java.io.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import javax.swing.JOptionPane;
 
 ArrayList<Plato> listaPlatos = new ArrayList<Plato>();
 ArrayList<Mesa> listaMesas = new ArrayList<Mesa>();
 ArrayList<Pedido> listaPedidos = new ArrayList<Pedido>();
 
-Scanner sc = new Scanner(System.in);
+
+int pantalla = 0; // 0=principal,1=platos,2=mesas,3=pedido
 
 void setup() {
   size(600, 400);
   cargarPlatos();
   cargarMesas();
   cargarPedidos();
-  menuPrincipal();
+  pantalla = 0;
 }
 
-void draw() {}
+void draw() {
+  background(240);
+  switch(pantalla) {
+    case 0:
+      drawMenuPrincipal();
+      break;
+    case 1:
+      drawMenuPlatos();
+      break;
+    case 2:
+      drawMenuMesas();
+      break;
+    case 3:
+      crearPedido();
+      pantalla = 0;
+      break;
+  }
+}
+
+void mousePressed() {
+  if (pantalla == 0) {
+    if (mouseX > 150 && mouseX < 450) {
+      if (mouseY > 100 && mouseY < 140) pantalla = 1;
+      else if (mouseY > 160 && mouseY < 200) pantalla = 2;
+      else if (mouseY > 220 && mouseY < 260) pantalla = 3;
+      else if (mouseY > 280 && mouseY < 320) exit();
+    }
+  } else if (pantalla == 1) {
+    // en menú de platos: opciones 1 y 2 y volver
+    if (mouseX > 150 && mouseX < 450) {
+      if (mouseY > 100 && mouseY < 140) crearPlatoDialog();
+      else if (mouseY > 160 && mouseY < 200) listarPlatosDialog();
+      else if (mouseY > 220 && mouseY < 260) pantalla = 0; // volver
+    }
+  } else if (pantalla == 2) {
+    // en menú de mesas
+    if (mouseX > 150 && mouseX < 450) {
+      if (mouseY > 100 && mouseY < 140) crearMesaDialog();
+      else if (mouseY > 160 && mouseY < 200) listarMesasDialog();
+      else if (mouseY > 220 && mouseY < 260) pantalla = 0; // volver
+    }
+  }
+}
+
+// dibuja un botón sencillo con texto centrado
+void drawButton(float x, float y, float w, float h, String txt) {
+  fill(200);
+  rect(x, y, w, h);
+  fill(0);
+  textAlign(CENTER, CENTER);
+  text(txt, x + w/2, y + h/2);
+}
+
+void drawMenuPrincipal() {
+  textSize(24);
+  fill(0);
+  textAlign(CENTER);
+  text("Menú Principal", width/2, 60);
+  drawButton(150, 100, 300, 40, "1. Platos");
+  drawButton(150, 160, 300, 40, "2. Mesas");
+  drawButton(150, 220, 300, 40, "3. Crear Pedido");
+  drawButton(150, 280, 300, 40, "0. Salir");
+}
+
+void drawMenuPlatos() {
+  textSize(24);
+  fill(0);
+  textAlign(CENTER);
+  text("CRUD Platos", width/2, 60);
+  drawButton(150, 100, 300, 40, "1. Crear Plato");
+  drawButton(150, 160, 300, 40, "2. Listar Platos");
+  drawButton(150, 220, 300, 40, "<- Volver");
+}
+
+void drawMenuMesas() {
+  textSize(24);
+  fill(0);
+  textAlign(CENTER);
+  text("CRUD Mesas", width/2, 60);
+  drawButton(150, 100, 300, 40, "1. Crear Mesa");
+  drawButton(150, 160, 300, 40, "2. Listar Mesas");
+  drawButton(150, 220, 300, 40, "<- Volver");
+}
 
 // ======================= MODELOS =======================
 
@@ -76,11 +160,12 @@ class Pedido {
 }
 
 // ======================= CARGA DE ARCHIVOS =======================
+// aquí el programa lee los archivos que usan en la compu, bien "manual" y simple
 
 void cargarPlatos() {
-  listaPlatos.clear();
+  listaPlatos.clear(); // empezamos limpio
   File file = new File(dataPath("Platos.txt"));
-  if (!file.exists()) return;
+  if (!file.exists()) return; // si no hay archivo no pasa nada
 
   String[] lineas = loadStrings("Platos.txt");
   for (String linea : lineas) {
@@ -144,127 +229,125 @@ void guardarPedidos() {
   saveStrings("Pedidos.txt", lineas);
 }
 
-// ======================= MENU =======================
-
-void menuPrincipal() {
-  int opcion;
-  do {
-    println("\n--- MENU PRINCIPAL ---");
-    println("1. CRUD Platos");
-    println("2. CRUD Mesas");
-    println("3. Crear Pedido");
-    println("0. Salir");
-    opcion = sc.nextInt();
-    sc.nextLine();
-
-    switch(opcion) {
-    case 1:
-      menuPlatos();
-      break;
-    case 2:
-      menuMesas();
-      break;
-    case 3:
-      crearPedido();
-      break;
-    }
-  } while (opcion != 0);
-}
+// ======================= MENU (texto antiguo) =======================
+// ya no usamos este menú principal porque ahora la interfaz se dibuja en pantalla
 
 // ======================= RF1 CRUD PLATOS =======================
 
+// el menú de texto original ya no se usa pero lo dejamos como referencia student code
 void menuPlatos() {
+  // esta era la versión sin interfaz gráfica
   println("1. Crear Plato");
   println("2. Listar Platos");
-  int op = sc.nextInt();
-  sc.nextLine();
+  int op = Integer.parseInt(JOptionPane.showInputDialog("1. Crear Plato\n2. Listar Platos"));
+  if (op == 1) crearPlatoDialog();
+  if (op == 2) listarPlatosDialog();
+}
 
-  if (op == 1) {
-    println("ID:");
-    String id = sc.nextLine();
-
-    for (Plato p : listaPlatos) {
-      if (p.id.equals(id)) {
-        println("ID duplicado.");
-        return;
-      }
-    }
-
-    println("Nombre:");
-    String nombre = sc.nextLine();
-    println("Categoria:");
-    String categoria = sc.nextLine();
-    println("Precio:");
-    double precio = sc.nextDouble();
-    sc.nextLine();
-
-    if (precio <= 0) {
-      println("Precio inválido.");
+// nuevas funciones con diálogos muy básicos
+void crearPlatoDialog() {
+  String id = JOptionPane.showInputDialog("ID:");
+  if (id == null) return;
+  for (Plato p : listaPlatos) {
+    if (p.id.equals(id)) {
+      JOptionPane.showMessageDialog(null, "ID duplicado.");
       return;
     }
-
-    listaPlatos.add(new Plato(id, nombre, categoria, precio, "SI"));
-    guardarPlatos();
-    println("Plato agregado.");
   }
-
-  if (op == 2) {
-    for (Plato p : listaPlatos) {
-      println(p.id + " - " + p.nombre + " - $" + p.precio);
-    }
+  String nombre = JOptionPane.showInputDialog("Nombre:");
+  if (nombre == null) return;
+  String categoria = JOptionPane.showInputDialog("Categoria:");
+  if (categoria == null) return;
+  String precioStr = JOptionPane.showInputDialog("Precio:");
+  if (precioStr == null) return;
+  double precio = 0;
+  try {
+    precio = Double.parseDouble(precioStr);
+  } catch (Exception e) {
+    JOptionPane.showMessageDialog(null, "Precio inválido.");
+    return;
   }
+  if (precio <= 0) {
+    JOptionPane.showMessageDialog(null, "Precio inválido.");
+    return;
+  }
+  listaPlatos.add(new Plato(id, nombre, categoria, precio, "SI"));
+  guardarPlatos();
+  JOptionPane.showMessageDialog(null, "Plato agregado.");
 }
+
+void listarPlatosDialog() {
+  if (listaPlatos.isEmpty()) {
+    JOptionPane.showMessageDialog(null, "No hay platos registrados.");
+    return;
+  }
+  StringBuilder sb = new StringBuilder();
+  for (Plato p : listaPlatos) {
+    sb.append(p.id).append(" - ").append(p.nombre).append(" - $").append(p.precio).append("\n");
+  }
+  JOptionPane.showMessageDialog(null, sb.toString());
+}
+
 
 // ======================= RF2 CRUD MESAS =======================
 
+// versión de menú original (texto), ahora usa diálogo
 void menuMesas() {
-  println("1. Crear Mesa");
-  println("2. Listar Mesas");
-  int op = sc.nextInt();
-  sc.nextLine();
-
-  if (op == 1) {
-    println("ID:");
-    String id = sc.nextLine();
-
-    for (Mesa m : listaMesas) {
-      if (m.id.equals(id)) {
-        println("ID duplicado.");
-        return;
-      }
-    }
-
-    println("Capacidad:");
-    int capacidad = sc.nextInt();
-    sc.nextLine();
-
-    listaMesas.add(new Mesa(id, capacidad, "LIBRE"));
-    guardarMesas();
-    println("Mesa creada.");
-  }
-
-  if (op == 2) {
-    for (Mesa m : listaMesas) {
-      println(m.id + " - Cap: " + m.capacidad + " - " + m.estado);
-    }
-  }
+  int op = Integer.parseInt(JOptionPane.showInputDialog("1. Crear Mesa\n2. Listar Mesas"));
+  if (op == 1) crearMesaDialog();
+  if (op == 2) listarMesasDialog();
 }
 
+// nuevas funciones de diálogos para mesa
+void crearMesaDialog() {
+  String id = JOptionPane.showInputDialog("ID:");
+  if (id == null) return;
+  for (Mesa m : listaMesas) {
+    if (m.id.equals(id)) {
+      JOptionPane.showMessageDialog(null, "ID duplicado.");
+      return;
+    }
+  }
+  String capStr = JOptionPane.showInputDialog("Capacidad:");
+  if (capStr == null) return;
+  int capacidad = 0;
+  try {
+    capacidad = Integer.parseInt(capStr);
+  } catch (Exception e) {
+    JOptionPane.showMessageDialog(null, "Capacidad inválida.");
+    return;
+  }
+  listaMesas.add(new Mesa(id, capacidad, "LIBRE"));
+  guardarMesas();
+  JOptionPane.showMessageDialog(null, "Mesa creada.");
+}
+
+void listarMesasDialog() {
+  if (listaMesas.isEmpty()) {
+    JOptionPane.showMessageDialog(null, "No hay mesas registradas.");
+    return;
+  }
+  StringBuilder sb = new StringBuilder();
+  for (Mesa m : listaMesas) {
+    sb.append(m.id).append(" - Cap: ").append(m.capacidad).append(" - ").append(m.estado).append("\n");
+  }
+  JOptionPane.showMessageDialog(null, sb.toString());
+}
 // ======================= RF3 CREAR PEDIDO =======================
 
 void crearPedido() {
-  println("ID Pedido:");
-  String idPedido = sc.nextLine();
+  String idPedido = JOptionPane.showInputDialog("ID Pedido:");
+  if (idPedido == null) return;
 
   for (Pedido p : listaPedidos) {
     if (p.idPedido.equals(idPedido)) {
-      println("ID Pedido duplicado.");
+      JOptionPane.showMessageDialog(null, "ID Pedido duplicado.");
       return;
     }
   }
 
-  println("ID Mesa:");
-  String idMesa = sc.nextLine();
+  String idMesa = JOptionPane.showInputDialog("ID Mesa:");
+  if (idMesa == null) return;
 
   boolean existeMesa = false;
   for (Mesa m : listaMesas) {
@@ -275,7 +358,7 @@ void crearPedido() {
   }
 
   if (!existeMesa) {
-    println("Mesa no existe.");
+    JOptionPane.showMessageDialog(null, "Mesa no existe.");
     return;
   }
 
@@ -284,5 +367,5 @@ void crearPedido() {
   guardarPedidos();
   guardarMesas();
 
-  println("Pedido creado correctamente.");
+  JOptionPane.showMessageDialog(null, "Pedido creado correctamente.");
 }
